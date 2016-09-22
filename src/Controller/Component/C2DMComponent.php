@@ -30,7 +30,7 @@ class C2DMComponent extends Component {
 		  'body' => $fields
 		  ));
 		 */
-		$this->log(array('response' => $result, 'request' => $fields), $this->TAG);
+		$this->log(array('response' => $result, 'request' => json_encode($fields)), $this->TAG);
 		return $result;
 	}
 
