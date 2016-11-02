@@ -33,7 +33,7 @@ class APNSComponent extends Component {
 		$fp = stream_socket_client($this->settings['gateway'], $err, $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $ctx);
 		if (!$fp) {
 			$this->log("Failed to connect: $err $errstr", $this->tag);
-			throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
+			// throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
 		}
 		$this->log('Connected to APNS.', $this->tag);
 		$this->log('Sending message to device: ' . $deviceToken, $this->tag);
