@@ -28,36 +28,38 @@ class APNSComponent extends Component {
 		$ctx = stream_context_create();
 		stream_context_set_option($ctx, 'ssl', 'local_cert', $this->settings['cert']);
 		stream_context_set_option($ctx, 'ssl', 'passphrase', $this->settings['passphrase']);
-		stream_set_timeout($ctx, 120);
+		stream_set_timeout($ctx, 1200);
 		// Open a connection to the APNS server
 		$fp = stream_socket_client($this->settings['gateway'], $err, $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $ctx);
+		$result = false;
 		if (!$fp) {
 			$this->log("Failed to connect: $err $errstr", $this->tag);
 			// throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
-		}
-		$this->log('Connected to APNS.', $this->tag);
-		$this->log('Sending message to device: ' . $deviceToken, $this->tag);
-		$body['aps'] = array(
-			'alert' => $config['message'],
-			'sound' => isset($config['sound']) ? $config['sound'] : 'default',
-			'badge' => isset($config['badge']) ? $config['badge'] : 0
-		);
-		if (is_array($extra)) {
-			$body['extra'] = $extra;
-		}
-		// Encode the payload as JSON
-		$payload = json_encode($body);
-		// Build the binary notification
-		$msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
-		// Send it to the server
-		$result = fwrite($fp, $msg, strlen($msg));
-		if (!$result) {
-			$this->log('Message not delivered.', $this->tag);
 		} else {
-			$this->log('Message successfully delivered.', $this->tag);
+			$this->log('Connected to APNS.', $this->tag);
+			$this->log('Sending message to device: ' . $deviceToken, $this->tag);
+			$body['aps'] = array(
+				'alert' => $config['message'],
+				'sound' => isset($config['sound']) ? $config['sound'] : 'default',
+				'badge' => isset($config['badge']) ? $config['badge'] : 0
+			);
+			if (is_array($extra)) {
+				$body['extra'] = $extra;
+			}
+			// Encode the payload as JSON
+			$payload = json_encode($body);
+			// Build the binary notification
+			$msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
+			// Send it to the server
+			$result = fwrite($fp, $msg, strlen($msg));
+			if (!$result) {
+				$this->log('Message not delivered.', $this->tag);
+			} else {
+				$this->log('Message successfully delivered.', $this->tag);
+			}
+			// Close the connection to the server
+			fclose($fp);
 		}
-		// Close the connection to the server
-		fclose($fp);
 		return $result;
 	}
 }
